@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>State Holders in Jetpack Compose</title>
+
+		<link rel="stylesheet" href="main.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h2>Why can't I hold<br/> all this state?!?</h2>
+					<h5>State Holders in Jetpack Compose</h5>
+					<img src="title-pic.png" style="height: 200px; width: 200px;"/>
+				</section>
+				<section>
+					<h3>The Problem</h3>
+
+					<pre class="language-kotlin"><code data-line-numbers="|2|3-5|6-12|14|">@Composable
+fun ExampleScreen(vm: ExampleViewModel = viewModel()) {
+  val state: List&lt;String> by vm.state.collectAsState()
+  val scope = rememberCoroutineScope()
+  val lazyListState = rememberLazyListState()
+  val scrollToBottom = remember&lt;() -> Unit> {
+    {
+      scope.launch {
+        lazyListState.scrollToItem(state.lastIndex)
+      }
+    }
+  }
+
+  ExampleScreen(state, lazyListState, scrollToBottom)
+}
+					</code></pre>
+				</section>
+				<section data-auto-animate>
+					<h4>Introducing</h4>
+					<h3>State Holder</h3>
+					</section>
+					<section data-auto-animate>
+					<h3>State Holder</h3>
+					<p style="font-size: 1.5rem;">*Disclosure - Okay so technically I'm just going to talk about POKO style State Holders in Compose. Generically State Holders can be used to abstract and represent any type of state you app might need to handle. Also if you follow Googles documentaiton, they also consider the Androidx ViewModel to also be a State Holder. For our use case we are looking for ways to combine state and logic which we can't do in a ViewModel for Composables.</p>
+					</section>
+				<section data-auto-animate>
+					<h3>State Holder</h3>
+					<pre class="language-kotlin"><code data-line-numbers="|10-14|17-21|22-28|30|1-8" style="overflow: hidden;">@Composable
+fun ExampleScreen(vm: ExampleViewModel = viewModel()) {
+  val state by vm.state.collectAsState()
+
+  val screenState = rememberScreenState(state = state)
+
+  ExampleScreen(screenState)
+}
+
+data class ScreenState(
+  val content: List&lt;String>,
+  val lazyListState: LazyListState,
+  val scrollToBottom: () -> Unit
+)
+
+@Composable
+fun rememberScreenState(
+  state: List&lt;String>,
+  lazyListState: LazyListState = rememberLazyListState(),
+  scope: CoroutineScope = rememberCoroutineScope(),
+): ScreenState {
+  val scrollToBottom = remember&lt;() -> Unit> {
+    {
+      scope.launch {
+        lazyListState.scrollToItem(state.lastIndex)
+      }
+    }
+  }
+
+  return ScreenState(state, lazyListState, scrollToBottom)
+}
+					</code></pre>
+				</section>
+				<section>
+					<h3>Tips & Tricks</h3>
+					<ul>
+						<li class="fragment custom highlight-current-white">Prevent unnecessary rerenders using <b>remember</b></li>
+						<li class="fragment custom highlight-current-white">Ensure data is maintained across configuration changes</li>
+						<li class="fragment custom highlight-current-white">State Holders built in a Composable will follow the Composable lifecycle</li>
+						<li class="fragment custom highlight-current-white">Don't pass complex or lifecycle aware components into your class</li>
+						<li class="fragment custom highlight-current-white">Don't preemptively introduce State Holders if you don't need them</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Resources</h3>
+					<ul>
+						<li>
+							<a href="https://www.youtube.com/watch?v=pCX9wvu-Bq0">State holders and state production (YouTube)</a>
+						</li>
+						<li>
+							<a href="https://developer.android.com/jetpack/compose/state">State and Jetpack Compose (Android Docs)</a>
+						</li>
+						<li>
+							<a href="https://developer.android.com/codelabs/jetpack-compose-advanced-state-side-effects#6">Advanced State and Side Effects (Code Lab)</a>
+						</li>
+					</ul>
+				</section>
+				<section>
+					<h1>Questions?</h1>
+				</section>
+			</div>
+		</div>
+
+		<script src="reveal.js"></script>
+		<script src="highlight.js"></script>
+		<script>
+			Reveal.initialize({
+				hash: true,
+				controls: false,
+				progress: false,
+
+				plugins: [ RevealHighlight ]
+			});
+		</script>
+	</body>
+</html>

@@ -63,7 +63,6 @@ data class SettingsScreenState(
     val descriptionDialog: DialogState<String>,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun rememberSettingScreenState(
     settings: Settings,
